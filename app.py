@@ -5,6 +5,7 @@ app = Flask(__name__)
 app.secret_key = 'your_very_secret_key'
 Data = 'db.db'
 
+Dynmap = "http://localhost:8123" #подключение к карте dynmap
 
 def get_db_connection():
 
@@ -31,7 +32,7 @@ def init_db():
 
 @app.route('/')
 def index():
-    return render_template('login.html')
+    return render_template('index.html')
 
 
 
