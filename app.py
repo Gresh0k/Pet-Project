@@ -1,42 +1,82 @@
-import sqlite3
-from flask import Flask, render_template
+from flask import Flask, render_template, request, redirect, url_for, jsonify
+from mcrcon import MCRcon
+import re
+
 
 app = Flask(__name__)
-app.secret_key = 'your_very_secret_key'
-Data = 'db.db'
 
-Dynmap = "http://localhost:8123" #подключение к карте dynmap
-
-def get_db_connection():
-
-    conn = sqlite3.connect(Data)
-    conn.row_factory = sqlite3.Row
-    return conn
-
-def init_db():
-
-    conn = get_db_connection()
-
-    conn.execute('''
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            username TEXT UNIQUE NOT NULL,
-            password_hash TEXT NOT NULL
-        )
-    ''')
-    conn.commit()
-    conn.close()
-    print("С БД всё хорошо.")
+RCON_HOST = "localhost"
+RCON_PORT = 25575
+RCON_PASSWORD = "89658965"
 
 
 
-@app.route('/')
+
+
+def run_rcon(cmd):
+    try:
+        with MCRcon(RCON_HOST, RCON_PASSWORD, port=RCON_PORT) as mcr:
+            return mcr.command(cmd)
+    except Exception as e:
+        return str(e)
+
+def strip_mc_colors(text: str) -> str:
+    return re.sub(r'§.', '', text)
+
+@app.route("/")
 def index():
-    return render_template('index.html')
+    return render_template("index.html")
+
+
+@app.route("/kick")
+def kick_menu():
+    resp = run_rcon("list")
+    print(resp)
+    players = []
+    if ":" in resp:
+        players_txt = resp.split(":")[1].strip()
+        players = [strip_mc_colors(p.strip()) for p in players_txt.split(",") if p.strip()]
+    return render_template("kick.html", players=players)
+
+@app.get("/kick_list")
+def kick_list():
+    resp = run_rcon("list")
+    players = []
+
+    if ":" in resp:
+        players_txt = resp.split(":")[1].strip()
+        players = [strip_mc_colors(p.strip()) for p in players_txt.split(",") if p.strip()]
+    return jsonify(players)
+
+
+@app.post("/kick_player")
+def kick_player():
+    raw_player = request.form["player"]
+    player = strip_mc_colors(raw_player)
+
+    reason = request.form["reason"]
+
+    run_rcon(f'kick {player} {reason}')
+    return redirect("/")
+
+
+@app.post("/ban_player")
+def ban_player():
+    raw_player = request.form["player"]
+    player = strip_mc_colors(raw_player)
+
+    reason = request.form["reason"]
+    duration = request.form["duration"]
+
+    if duration == "permanent":
+        run_rcon(f'ban {player} {reason}')
+    else:
+        run_rcon(f'tempban {player} {duration} {reason}')
+    return redirect("/")
 
 
 
 
-if __name__ == '__main__':
-    init_db()
-    app.run(host='0.0.0.0', port=8000, debug=True)
+
+if __name__ == "__main__":
+    app.run(debug=True)
