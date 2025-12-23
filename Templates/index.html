@@ -10,7 +10,7 @@
 <body>
 
 <div class="navbar">
-    <button>Кнопка</button>
+    <a href="{{ url_for('logout') }}">Выйти</a>
     <button onclick="openBanPlayersModal()">Бан игрока</button>
     <button onclick="openPlayersModal()">Кик игрока</button>
 </div>
@@ -78,6 +78,8 @@
         </form>
     </div>
 </div>
+
+
 
 
 </body>
