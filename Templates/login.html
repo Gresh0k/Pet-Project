@@ -3,23 +3,28 @@
 <head>
     <meta charset="UTF-8">
     <title>Авторизация</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
-<body>
-<div class="box">
-    <h2>Вход</h2>
-    <form method="post" action="login.html">
-        <label>Введите логин:</label>
-        <input type="login" name="loginuser" required>
-        <label>Введите пароль:</label>
-        <input type="password" name="Passworduser">
-        <button type="vhod">Войти</button>
+<body class="auth-page">
+
+<div class="auth-box">
+    <h1 class="auth-title">Панель администратора</h1>
+    <h2 class="auth-subtitle">Вход</h2>
+
+    <form method="post" action="{{ url_for('login') }}" class="auth-form">
+        <label>Логин</label>
+        <input type="text" name="username" required>
+
+        <label>Пароль</label>
+        <input type="password" name="password" required>
+
+        <button type="submit" class="btn primary">Войти</button>
     </form>
 
-<a class="switch" href="registr.html">Зарегистрироваться</a>
+    {% if error %}
+        <div class="error-box">{{ error }}</div>
+    {% endif %}
 </div>
-
-
 
 </body>
 </html>
